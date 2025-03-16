@@ -1,8 +1,8 @@
-"use client"; // Add this at the very top
-
+"use client";
+// for next to work properly we need to add use client above otherwise it will crash badly
 import { useState, useEffect } from 'react';
 import { io, Socket } from "socket.io-client";
-
+// this is an error for now i will work on a fix later
 interface ServerToClientEvents {
   noArg: () => void;
   basicEmit: (a: number, b: string, c: Buffer) => void;
@@ -17,11 +17,11 @@ interface ServerToClientEvents {
   newMessage: (message: string) => void;
 }
 export default function Home() {
-  const [message, setMessage] = useState<string>(''); // Input text
-  const [messages, setMessages] = useState<string[]>([]); // List of messages
+  const [message, setMessage] = useState<string>('');
+  const [messages, setMessages] = useState<string[]>([]);
 
   useEffect(() => {
-    // Correct typing for Socket.IO client
+// the error is killing me 
     const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io("http://localhost:4000");
     socket.on('new-message', (newMessage: string) => {
       setMessages((prev) => [...prev, newMessage]);

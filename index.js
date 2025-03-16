@@ -8,23 +8,18 @@ const io = new Server(server);
 
 app.use(express.json());
 
-// A simple list to store messages (like a database)
 let messages = [];
-
-// API to get all messages
 app.get('/messages', (req, res) => {
   res.json(messages);
 });
 
-// API to send a message
 app.post('/messages', (req, res) => {
   const message = req.body.message;
   messages.push(message);
-  io.emit('new-message', message); // Shout it to everyone
+  io.emit('new-message', message);
   res.json({ status: 'Message sent', message });
 });
 
-// WebSocket connection
 io.on('connection', (socket) => {
   console.log('Someone connected!');
 });
