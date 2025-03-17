@@ -1,36 +1,36 @@
 "use client";
-// for next to work properly we need to add use client above otherwise it will crash badly
+
 import { useState, useEffect } from 'react';
-import { io, Socket } from "socket.io-client";
-// this is an error for now i will work on a fix later
+import io, { Socket } from 'socket.io-client';
+
 interface ServerToClientEvents {
-  noArg: () => void;
-  basicEmit: (a: number, b: string, c: Buffer) => void;
-  withAck: (d: string, callback: (e: number) => void) => void;
+  'new-message': (message: string) => void;
 }
 
 interface ClientToServerEvents {
-  hello: () => void;
+  // bal bla blaaaaa
 }
 
-interface ServerToClientEvents {
-  newMessage: (message: string) => void;
-}
 export default function Home() {
-  const [message, setMessage] = useState<string>('');
-  const [messages, setMessages] = useState<string[]>([]);
+  const [message, setMessage] = useState<string>(''); 
+  const [messages, setMessages] = useState<string[]>([]); 
 
   useEffect(() => {
-// the error is killing me 
-    const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io("http://localhost:4000");
+    const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io('http://localhost:4000');
+    // no more pain in the ass , the problem was with my version configuration ... i was using an older version hahahahhahaha
+    // now Socket is declared an interface , it wasnt because of my old socket.io version
     socket.on('new-message', (newMessage: string) => {
       setMessages((prev) => [...prev, newMessage]);
     });
-
+  
     fetch('http://localhost:4000/messages')
-      .then((res) => res.json())
-      .then((data: string[]) => setMessages(data));
-
+      .then((res) => {
+        if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+        return res.json();
+      })
+      .then((data: string[]) => setMessages(data))
+      .catch((err) => console.error('Fetch error:', err));
+  
     return () => {
       socket.disconnect();
     };
