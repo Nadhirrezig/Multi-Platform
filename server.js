@@ -7,13 +7,16 @@ const server = http.createServer(app);
 const io = new Server(server , 
   {
   cors: {
-  origin: 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'http://192.168.1.11:3000',
+  ],
   methods: ['GET', 'POST']
   }
 });
 
 app.use(express.json());
-app.use(cors({origin: 'http://localhost:3000'}));
+app.use(cors({origin: ['http://localhost:3000' , 'http://192.168.1.11:3000']}));
 // this will only work in local machine , other wise you can use * in origin
 // app.use(cors({origin: '*'}));
 // and ofcourse not only here you need to copy past your IP adress to page.tsx in nextjs webapp same as you did in this file
@@ -30,16 +33,16 @@ app.get('/messages', (req, res) => {
 
 app.post('/messages', (req, res) => {
   const message = req.body.message;
+  console.log('Received POST:', message);
   messages.push(message);
   io.emit('new-message', message);
-  res.json({ status: 'Message sent', message });
+  console.log('Broadcasted:', message);
+  res.json({ status: 'Sent', message });
 });
 
 io.on('connection', (socket) => {
-  const ip = socket.handshake.address;
-  console.log(ip,'Someone connected!');
+  console.log('Client connected:', socket.id);
 });
-
 server.listen(4000, () => {
   console.log('Backend running on http://localhost:4000');
 });
