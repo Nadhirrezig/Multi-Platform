@@ -10,20 +10,23 @@ interface ServerToClientEvents {
 interface ClientToServerEvents {
   // bal bla blaaaaa
 }
-
+const backendURL = 'http://192.168.1.11:4000';
 export default function Home() {
   const [message, setMessage] = useState<string>(''); 
   const [messages, setMessages] = useState<string[]>([]); 
 
   useEffect(() => {
-    const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io('http://localhost:4000');
-    // no more pain in the ass , the problem was with my version configuration ... i was using an older version hahahahhahaha
-    // now Socket is declared an interface , it wasnt because of my old socket.io version
+    console.log('Connecting to:', backendURL);
+    const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(backendURL);
+  
+    socket.on('connect', () => console.log('Socket connected:', socket.id));
     socket.on('new-message', (newMessage: string) => {
+      console.log('Received:', newMessage);
       setMessages((prev) => [...prev, newMessage]);
     });
+    socket.on('connect_error', (err) => console.error('Socket error:', err));
   
-    fetch('http://localhost:4000/messages')
+    fetch(`${backendURL}/messages`)
       .then((res) => {
         if (!res.ok) throw new Error('Fetch failed: ' + res.status);
         return res.json();
@@ -37,7 +40,7 @@ export default function Home() {
   }, []);
 
   const sendMessage = () => {
-    fetch('http://localhost:4000/messages', {
+    fetch(`${backendURL}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message }),
