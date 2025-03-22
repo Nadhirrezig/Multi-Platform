@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import io, { Socket } from 'socket.io-client';
-
+import {setupconnection} from './lib/connection';
 interface ServerToClientEvents {
   'new-message': (message: string) => void;
 }
@@ -25,15 +25,7 @@ export default function Home() {
       setMessages((prev) => [...prev, newMessage]);
     });
     socket.on('connect_error', (err) => console.error('Socket error:', err));
-  
-    fetch(`${backendURL}/messages`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Fetch failed: ' + res.status);
-        return res.json();
-      })
-      .then((data: string[]) => setMessages(data))
-      .catch((err) => console.error('Fetch error:', err));
-  
+    setupconnection();
     return () => {
       socket.disconnect();
     };
