@@ -11,7 +11,7 @@ const io = new Server(
     cors: {
     origin: [
       'http://localhost:3000',
-      'http://192.168.1.11:3000',
+      'http://192.168.1.16:3000'
     ],
     methods: ['GET', 'POST']
     }
@@ -20,7 +20,7 @@ const io = new Server(
 );
 
 app.use(express.json());
-app.use(cors({origin: ['http://localhost:3000' , 'http://192.168.1.11:3000']}));
+app.use(cors({origin: [ 'http://localhost:3000' , 'http://192.168.1.16' ]}));
 // this will only work in local machine , other wise you can use * in origin
 // app.use(cors({origin: '*'}));
 // and ofcourse not only here you need to copy past your IP adress to page.tsx in nextjs webapp same as you did in this file
@@ -41,7 +41,11 @@ webpush.setVapidDetails(
 let messages = [];
 
 // kthor 3liya lcode brojla
+
+
 let subscriptions = [];
+
+
 app.post('/subscribe', (req, res) => {
   const subscription = req.body;
   console.log('Received subscription:', subscription);
@@ -54,25 +58,39 @@ app.get('/messages', (req, res) => {
   res.json(messages);
 });
 
+
+/////////////////////////////////////////////////////////////////////////////POST REQUEST /////////////////////////////////////////////////////////////
+// O9sem blh dhaba3t 3iniya maash tchuf fi chy 
+
+
 app.post('/messages', (req, res) => {
-  const message = req.body.message;
-  console.log('Received POST:', message);
-  messages.push(message);
-  io.emit('new-message', message);
-  console.log('Broadcasted:', message);
+  const { message, room } = req.body;
+  if (!room || !message) {
+    return res.status(400).json({ error: 'Room and message are required' });
+  }
+  messages.push({ message, room });
+  io.to(room).emit('new-message', message);
+  console.log(`Broadcasted to ${room}: ${message}`);
   const payload = JSON.stringify({
-    title: 'New Message',
+    title: `New Message in ${room}`,
     body: message,
   });
   subscriptions.forEach((subscription) => {
     webpush.sendNotification(subscription, payload)
       .catch((err) => console.error('Push failed:', err));
   });
-  res.json({ status: 'Sent', message });
+  res.status(201).json({ status: 'Message sent' });
 });
 
+
+
+/////////////////////////////////////////////////////////////////////////// handling connection and disconnection //////////////////////////////////////////////////
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
+  socket.on('join-room', (room) => {
+    console.log('Joining room:', room);
+    socket.join(room);
+  });
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
   });
