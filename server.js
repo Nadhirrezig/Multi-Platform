@@ -16,7 +16,7 @@ const io = new Server(
     methods: ['GET', 'POST']
     }
   },
-  {connectionStateRecovery: {}} // cool shit when client disconnectes for a short delay for exemple switching from WIFI to 4/5G
+  {connectionStateRecovery: {}} // cool shit when client disconnectes for a short delay for exemple switching from WIFI to 4G/5G
 );
 
 app.use(express.json());
@@ -65,21 +65,21 @@ app.get('/messages', (req, res) => {
 
 app.post('/messages', (req, res) => {
   const { message, room } = req.body;
-  if (!room || !message) {
-    return res.status(400).json({ error: 'Room and message are required' });
+  if (!message || !room) { // Fixed validation to require both
+    return res.status(400).json({ error: 'ena ou inty are required' });
   }
-  messages.push({ message, room });
-  io.to(room).emit('new-message', message);
-  console.log(`Broadcasted to ${room}: ${message}`);
+  const messageData = { message, room, timestamp: Date.now() };
+  messages.push(messageData);
+  console.log('Stored fi rasi:', messageData);
   const payload = JSON.stringify({
     title: `New Message in ${room}`,
     body: message,
   });
-  subscriptions.forEach((subscription) => {
-    webpush.sendNotification(subscription, payload)
-      .catch((err) => console.error('Push failed:', err));
-  });
-  res.status(201).json({ status: 'Message sent' });
+  Promise.all(
+    subscriptions.map((sub) =>
+      webpush.sendNotification(sub, payload).catch((err) => console.error('Notification failed:', err))
+    )
+  ).then(() => res.status(201).json({ status: 'Message sent', data: messageData }));
 });
 
 
@@ -87,14 +87,47 @@ app.post('/messages', (req, res) => {
 /////////////////////////////////////////////////////////////////////////// handling connection and disconnection //////////////////////////////////////////////////
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
+
   socket.on('join-room', (room) => {
-    console.log('Joining room:', room);
+    if (typeof room !== 'string' || !room) {
+      console.log('Invalid room:', room);
+      return;
+    }
     socket.join(room);
+    socket.broadcast.emit('new-message', `${socket.id}: has Joined room: ${room}`);
+    console.log(`Socket ${socket.id} joined room: ${room}`);
   });
+
+  socket.on('send-message', (data) => {
+    const { room, message } = data;
+    if (!message || typeof message !== 'string') {
+      console.log('Invalid message:', data);
+      return;
+    }
+    const messageData = { message, room: room || 'broadcast', timestamp: Date.now() };
+    messages.push(messageData);
+
+    if (room) {
+      io.to(room).emit('new-message', message);
+      console.log(`Sent to room ${room}: ${message}`);
+    } else {
+      io.emit('new-message', message);
+      console.log(`Broadcasted: ${message}`);
+    }
+    const payload = JSON.stringify({
+      title: room ? `New Message in ${room}` : 'New Broadcast Message',
+      body: message,
+    });
+    subscriptions.forEach((sub) =>
+      webpush.sendNotification(sub, payload).catch((err) => console.error('Push failed:', err))
+    );
+  });
+
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
   });
 });
+
 server.listen(4000, () => {
   console.log('Backend running on http://localhost:4000');
 });
