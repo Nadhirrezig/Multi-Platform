@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import io, { Socket } from 'socket.io-client';
-import { setupconnection } from './lib/connection';
 import './page.css';
 
 interface ServerToClientEvents {
@@ -11,9 +10,10 @@ interface ServerToClientEvents {
 
 interface ClientToServerEvents {
   'join-room': (room: string) => void;
+  'send-message': (data: { room?: string; message: string }) => void;
 }
 
-const backendURL = 'http://192.168.1.16:4000';
+const backendURL = 'http://192.168.1.16:4000'; // Your IP
 
 export default function Home() {
   const [roomName, setRoomName] = useState<string>('');
@@ -22,7 +22,6 @@ export default function Home() {
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
 
   useEffect(() => {
-    setupconnection();
     const socket = io(backendURL);
     socketRef.current = socket;
     console.log('Connecting to:', backendURL);
@@ -37,41 +36,42 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
+  // Join room when button is clicked
+  const joinRoom = () => {
     if (roomName && socketRef.current) {
       socketRef.current.emit('join-room', roomName);
       console.log(`Joined room: ${roomName}`);
+    } else {
+      console.log('Room name is empty');
     }
-  }, [roomName]);
+  };
 
+  // Send message: room-specific or broadcast
   const sendMessage = () => {
-    if (roomName && message && socketRef.current) {
-      fetch(`${backendURL}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ room: roomName, message }),
-      })
-        .catch((err) => console.error('Send failed:', err));
+    if (message && socketRef.current) {
+      const data = { message, ...(roomName && { room: roomName }) }; // Include room only if set
+      socketRef.current.emit('send-message', data);
       setMessage('');
     } else {
-      console.log('Room name or message is empty');
+      console.log('Message is empty');
     }
   };
 
   return (
     <div className="container">
-      <h1>Chat App</h1>
-      <input
-        value={roomName}
-        onChange={(e) => setRoomName(e.target.value)}
-        placeholder="Type a room name"
-      />
+      <h1>Web App</h1>
       <input
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Type a message"
       />
+      <input
+        value={roomName}
+        onChange={(e) => setRoomName(e.target.value)}
+        placeholder="Type a room name"
+      />
       <button onClick={sendMessage}>Send</button>
+      <button onClick={joinRoom}>Join ROOM</button>
       <ul>
         {messages.map((msg, index) => (
           <li key={index}>{msg}</li>
