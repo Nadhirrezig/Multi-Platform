@@ -65,7 +65,7 @@ app.get('/messages', (req, res) => {
 
 app.post('/messages', (req, res) => {
   const { message, room } = req.body;
-  if (!message || !room) { // Fixed validation to require both
+  if (!message || !room) {
     return res.status(400).json({ error: 'ena ou inty are required' });
   }
   const messageData = { message, room, timestamp: Date.now() };
