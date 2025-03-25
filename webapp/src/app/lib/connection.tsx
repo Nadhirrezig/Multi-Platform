@@ -8,7 +8,7 @@ export function Code(base64String: string) {
     }
     return outputArray;
 }
-const backendURL = 'http://192.168.1.11:4000';
+const backendURL = 'http://192.168.1.16:4000';
 export async function setupconnection(){
         if ('serviceWorker' in navigator && 'PushManager' in window) {
           try {
