@@ -68,17 +68,13 @@ export default function Home() {
   return (
     <div className="container">
       <h1>Web App</h1>
-      <input
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        placeholder="Type a message"
-      />
+      <RoomUI value={message} onChange={setMessage} />
       <input
         value={roomName}
         onChange={(e) => setRoomName(e.target.value)}
         placeholder="Type a room name"
       />
-      <button onClick={sendMessage}>Send</button>
+      <button onClick={sendMessage}>Send msg</button>
       <button onClick={joinRoom}>Join ROOM</button>
       <ul>
         {messages.map((msg, index) => (
