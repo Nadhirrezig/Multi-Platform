@@ -1,9 +1,9 @@
-"use client";
-
+import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import io, { Socket } from 'socket.io-client';
-import RoomUI from '@/app/ui/input-ui';
-import './page.css';
+import { Button, FlatList, TextInput } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, Text, View } from 'react-native';
 interface ServerToClientEvents {
   'new-message': (message: string) => void;
 }
@@ -15,7 +15,8 @@ interface ClientToServerEvents {
 // backend URL is going to change later specially when deploying the app , for now we are just testing , local testing
 const backendURL = 'http://192.168.1.16:4000'; // Your IP
 
-export default function Home() {
+export default function App() {
+  // bitbi3a copy past habibi 5atr ti5dem fi REACT doesnt matter nativ or web lkolo JAVASCRIPT HAHAHAHAHAHHAHAHAHA , i love you
   const [roomName, setRoomName] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState<string[]>([]);
@@ -55,7 +56,6 @@ export default function Home() {
     }
   };
 
-  // Send message: room-specific or broadcast 
   const sendMessage = () => {
     if (message && socketRef.current) {
       const data = { message, ...(roomName && { room: roomName }) };
@@ -66,25 +66,52 @@ export default function Home() {
     }
   };
   return (
-    <div className="container">
-      <h1>Web App</h1>
-      <input
+    <View style={styles.container}>
+      <Text style={styles.title}>Mobile App</Text>
+      <TextInput
+        style={styles.input}
         value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        onChangeText={setMessage}
         placeholder="Type a message"
       />
-      <input
+      <TextInput
+        style={styles.input}
         value={roomName}
-        onChange={(e) => setRoomName(e.target.value)}
+        onChangeText={setRoomName}
         placeholder="Type a room name"
       />
-      <button onClick={sendMessage}>Send</button>
-      <button onClick={joinRoom}>Join ROOM</button>
-      <ul>
-        {messages.map((msg, index) => (
-          <li key={index}>{msg}</li>
-        ))}
-      </ul>
-    </div>
+      <Button title="Send" onPress={sendMessage} />
+      <Button title="Join ROOM" onPress={joinRoom} />
+      <FlatList
+        data={messages}
+        renderItem={({ item }) => <Text style={styles.message}>{item}</Text>}
+        keyExtractor={(item, index) => index.toString()}
+      />
+      <StatusBar style="auto" />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  message: {
+    fontSize: 16,
+    marginVertical: 5,
+  },
+});
