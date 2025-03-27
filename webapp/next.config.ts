@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "@/app/*": ["src/app/*"]
+      },
+      // Add additional properties here if needed
+  }
 };
 
 export default nextConfig;

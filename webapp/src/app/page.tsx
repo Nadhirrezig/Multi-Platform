@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import io, { Socket } from 'socket.io-client';
+import RoomUI from '@/app/ui/input-ui';
 import './page.css';
 interface ServerToClientEvents {
   'new-message': (message: string) => void;
