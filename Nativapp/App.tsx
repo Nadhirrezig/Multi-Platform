@@ -21,7 +21,6 @@ export default function App() {
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState<string[]>([]);
   const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
-
   useEffect(() => {
     const socket = io(backendURL);
     socketRef.current = socket;
@@ -91,7 +90,6 @@ export default function App() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
