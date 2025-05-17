@@ -85,7 +85,7 @@ app.post('/messages', (req, res) => {
 /////////////////////////////////////////////////////////////////////////// handling connection and disconnection //////////////////////////////////////////////////
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
-
+  socket.emit(`new-message', '${socket.id},Welcome to the chat!`);
   socket.on('join-room', (room) => {
     if (typeof room !== 'string' || !room) {
       console.log('Invalid room:', room);
@@ -96,6 +96,7 @@ io.on('connection', (socket) => {
       user: 'Server',
       message: `${socket.id}: has Joined room: ${room}`
     });
+    socket.broadcast.to(room).emit('new-message', `${socket.id}: has Joined room: ${room}`);
     console.log(`Socket ${socket.id} joined room: ${room}`);
   });
 
